@@ -4,8 +4,9 @@
 
 ## 你會得到什麼
 
-- 每天固定時間自動推播
-- 支援多個 RSS / Atom 資訊來源
+- 每天早上與晚上固定時間自動推播
+- 支援分類 RSS / Atom 資訊來源
+- 支援天氣、股價與匯率速覽
 - 支援手動從 GitHub Actions 觸發
 - 不需要伺服器，不需要電腦開著
 - 不依賴 OpenAI API，之後可再加 AI 摘要
@@ -45,16 +46,19 @@ https://api.telegram.org/bot<你的 BOT TOKEN>/getUpdates
 
 ### 4. 設定資訊來源
 
-編輯 `sources.json`。
+編輯 `briefing_config.json`。
 
 ```json
-[
+{
+  "name": "AI / 開發工具",
+  "feeds": [
   {
     "name": "Hacker News",
     "url": "https://news.ycombinator.com/rss",
     "max_items": 5
   }
-]
+  ]
+}
 ```
 
 ### 5. 設定推播時間
@@ -64,10 +68,11 @@ GitHub Actions 的 cron 使用 UTC。
 目前 `.github/workflows/daily-telegram.yml` 設定為：
 
 ```yaml
-cron: "0 0 * * *"
+- cron: "0 0 * * *"
+- cron: "30 14 * * *"
 ```
 
-也就是台北時間每天早上 08:00。
+也就是台北時間每天早上 08:00 與晚上 22:30。
 
 ## 本地測試
 
@@ -75,6 +80,12 @@ cron: "0 0 * * *"
 
 ```powershell
 python notify.py --dry-run
+```
+
+測試晚上版：
+
+```powershell
+python notify.py --dry-run --profile evening
 ```
 
 真的發送：

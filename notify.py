@@ -1,4 +1,5 @@
 import argparse
+import csv
 import datetime as dt
 import html
 import json
@@ -11,7 +12,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 
-SOURCES_FILE = "sources.json"
+CONFIG_FILE = "briefing_config.json"
 TELEGRAM_LIMIT = 3900
 
 
@@ -58,6 +59,7 @@ def parse_feed(feed_bytes: bytes, max_items: int) -> list[dict[str, str]]:
             {
                 "title": text_of(item, ["title"]) or "(untitled)",
                 "link": text_of(item, ["link"]),
+                "summary": strip_html(text_of(item, ["description"])),
             }
             for item in items
         ]
@@ -67,59 +69,175 @@ def parse_feed(feed_bytes: bytes, max_items: int) -> list[dict[str, str]]:
         parsed = []
         for entry in entries:
             title = first_child_text(entry, "title") or "(untitled)"
+            summary = strip_html(first_child_text(entry, "summary") or first_child_text(entry, "content"))
             link = ""
             for child in entry:
                 if child.tag.split("}")[-1] == "link":
                     link = child.attrib.get("href", "")
                     if link:
                         break
-            parsed.append({"title": title, "link": link})
+            parsed.append({"title": title, "link": link, "summary": summary})
         return parsed
 
     return []
 
 
-def load_sources(path: str) -> list[dict]:
+def strip_html(value: str) -> str:
+    text = ""
+    in_tag = False
+    for char in value:
+        if char == "<":
+            in_tag = True
+        elif char == ">":
+            in_tag = False
+        elif not in_tag:
+            text += char
+    return " ".join(html.unescape(text).split())
+
+
+def truncate(value: str, length: int = 90) -> str:
+    value = " ".join(value.split())
+    if len(value) <= length:
+        return value
+    return value[: length - 1].rstrip() + "..."
+
+
+def load_config(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
-    if not isinstance(data, list):
-        raise ValueError("sources.json must contain a list of source objects.")
+    if not isinstance(data, dict):
+        raise ValueError("briefing_config.json must contain an object.")
     return data
 
 
-def build_message(sources: list[dict]) -> str:
-    today = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d")
-    sections = [f"<b>Daily Briefing</b> · {today}"]
+def item_matches(item: dict[str, str], keywords: list[str] | None, exclude_keywords: list[str] | None) -> bool:
+    text = f"{item.get('title', '')} {item.get('summary', '')}".lower()
+    if exclude_keywords and any(keyword.lower() in text for keyword in exclude_keywords):
+        return False
+    if not keywords:
+        return True
+    return any(keyword.lower() in text for keyword in keywords)
 
-    for source in sources:
-        name = source.get("name", "Untitled Source")
-        url = source.get("url")
-        max_items = int(source.get("max_items", 5))
 
-        if not url:
-            continue
+def collect_section(section: dict) -> list[dict[str, str]]:
+    collected = []
+    seen_links = set()
+    keywords = section.get("keywords")
+    exclude_keywords = section.get("exclude_keywords")
 
+    for feed in section.get("feeds", []):
+        feed_name = feed.get("name", "Source")
         try:
-            items = parse_feed(fetch_url(url), max_items)
-        except (urllib.error.URLError, ET.ParseError, TimeoutError, ValueError) as error:
-            sections.append(f"\n<b>{html.escape(name)}</b>\n- Failed to load: {html.escape(str(error))}")
+            items = parse_feed(fetch_url(feed["url"]), int(feed.get("max_items", 5)))
+        except (urllib.error.URLError, ET.ParseError, TimeoutError, ValueError, KeyError):
             continue
 
-        if not items:
-            sections.append(f"\n<b>{html.escape(name)}</b>\n- No items found")
-            continue
-
-        lines = [f"\n<b>{html.escape(name)}</b>"]
         for item in items:
-            title = html.escape(item["title"])
-            link = item.get("link", "")
-            if link:
-                lines.append(f'- <a href="{html.escape(link, quote=True)}">{title}</a>')
-            else:
-                lines.append(f"- {title}")
-        sections.append("\n".join(lines))
+            link = item.get("link") or item.get("title", "")
+            if link in seen_links or not item_matches(item, keywords, exclude_keywords):
+                continue
+            seen_links.add(link)
+            item["source"] = feed_name
+            collected.append(item)
 
-    return "\n".join(sections)
+    return collected[: int(section.get("max_items", 5))]
+
+
+def fetch_weather(locations: list[str | dict]) -> list[str]:
+    lines = []
+    for location in locations:
+        if isinstance(location, dict):
+            label = location.get("label", location.get("query", ""))
+            query_value = location.get("query", label)
+        else:
+            label = location
+            query_value = location
+        query = urllib.parse.quote(query_value)
+        try:
+            data = fetch_url(f"https://wttr.in/{query}?format=3", timeout=10).decode("utf-8")
+        except (urllib.error.URLError, TimeoutError, UnicodeDecodeError):
+            continue
+        if data:
+            _, _, details = data.strip().partition(":")
+            lines.append(f"{html.escape(label)}:{html.escape(details or data.strip())}")
+    return lines
+
+
+def fetch_markets(symbols: list[dict]) -> list[str]:
+    if not symbols:
+        return []
+
+    lines = []
+    for symbol in symbols:
+        label = symbol["label"]
+        query = urllib.parse.quote(symbol["stooq"], safe=".")
+        url = f"https://stooq.com/q/l/?s={query}&f=sd2t2ohlcv&e=csv"
+        try:
+            rows = list(csv.reader(fetch_url(url, timeout=15).decode("utf-8").splitlines()))
+        except (urllib.error.URLError, TimeoutError, UnicodeDecodeError):
+            continue
+        if not rows or len(rows[0]) < 7 or rows[0][6] == "N/D":
+            continue
+        date = rows[0][1]
+        close = rows[0][6]
+        lines.append(f"{html.escape(label)}: {html.escape(close)} <i>({html.escape(date)})</i>")
+    return lines
+
+
+def section_by_name(config: dict, name: str) -> dict | None:
+    for section in config.get("sections", []):
+        if section.get("name") == name:
+            return section
+    return None
+
+
+def render_item(item: dict[str, str]) -> str:
+    title = html.escape(item["title"])
+    link = item.get("link", "")
+    source = html.escape(item.get("source", ""))
+    summary = truncate(item.get("summary", ""), 86)
+    source_text = f" <i>({source})</i>" if source else ""
+
+    if link:
+        line = f'- <a href="{html.escape(link, quote=True)}">{title}</a>{source_text}'
+    else:
+        line = f"- {title}{source_text}"
+    if summary:
+        line += f"\n  {html.escape(summary)}"
+    return line
+
+
+def build_message(config: dict, profile_name: str) -> str:
+    utc_offset_hours = int(config.get("utc_offset_hours", 8))
+    timezone = dt.timezone(dt.timedelta(hours=utc_offset_hours))
+    today = dt.datetime.now(timezone).strftime("%Y-%m-%d")
+    profile = config.get("profiles", {}).get(profile_name, config.get("profiles", {}).get("morning", {}))
+    title = profile.get("title", "Daily Briefing")
+    message_sections = [f"<b>{html.escape(title)}</b> · {today}"]
+
+    if config.get("weather", {}).get("enabled") and profile_name == "morning":
+        weather_lines = fetch_weather(config["weather"].get("locations", []))
+        if weather_lines:
+            message_sections.append("\n<b>天氣</b>\n" + "\n".join(f"- {line}" for line in weather_lines))
+
+    if config.get("markets", {}).get("enabled"):
+        market_lines = fetch_markets(config["markets"].get("symbols", []))
+        if market_lines:
+            message_sections.append("\n<b>市場速覽</b>\n" + "\n".join(f"- {line}" for line in market_lines))
+
+    for section_name in profile.get("sections", []):
+        section = section_by_name(config, section_name)
+        if not section:
+            continue
+        items = collect_section(section)
+        if not items:
+            continue
+        lines = [f"\n<b>{html.escape(section_name)}</b>"]
+        lines.extend(render_item(item) for item in items)
+        message_sections.append("\n".join(lines))
+
+    message_sections.append("\n<i>已過濾：八卦、未證實謠言、低價值廣告與 NIKKE 相關內容。</i>")
+    return "\n".join(message_sections)
 
 
 def split_message(message: str) -> list[str]:
@@ -161,11 +279,12 @@ def send_telegram(message: str, token: str, chat_id: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Send a daily briefing to Telegram.")
     parser.add_argument("--dry-run", action="store_true", help="Print the message without sending it.")
-    parser.add_argument("--sources", default=SOURCES_FILE, help="Path to sources JSON file.")
+    parser.add_argument("--config", default=CONFIG_FILE, help="Path to briefing config JSON file.")
+    parser.add_argument("--profile", default=os.environ.get("BRIEFING_PROFILE", "morning"), choices=["morning", "evening"])
     args = parser.parse_args()
 
-    sources = load_sources(args.sources)
-    message = build_message(sources)
+    config = load_config(args.config)
+    message = build_message(config, args.profile)
 
     if args.dry_run:
         print(textwrap.dedent(message))

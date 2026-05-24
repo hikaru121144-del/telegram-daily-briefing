@@ -4,7 +4,17 @@ on:
   schedule:
     # 00:00 UTC = 08:00 Asia/Taipei
     - cron: "0 0 * * *"
+    # 14:30 UTC = 22:30 Asia/Taipei
+    - cron: "30 14 * * *"
   workflow_dispatch:
+    inputs:
+      profile:
+        description: "Briefing profile"
+        type: choice
+        default: morning
+        options:
+          - morning
+          - evening
 
 jobs:
   notify:
@@ -19,8 +29,19 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Choose briefing profile
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "BRIEFING_PROFILE=${{ inputs.profile }}" >> "$GITHUB_ENV"
+          elif [ "${{ github.event.schedule }}" = "30 14 * * *" ]; then
+            echo "BRIEFING_PROFILE=evening" >> "$GITHUB_ENV"
+          else
+            echo "BRIEFING_PROFILE=morning" >> "$GITHUB_ENV"
+          fi
+
       - name: Send Telegram briefing
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python notify.py
+        run: python notify.py --profile "$BRIEFING_PROFILE"

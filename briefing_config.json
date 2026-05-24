@@ -1,0 +1,232 @@
+{
+  "timezone": "Asia/Taipei",
+  "utc_offset_hours": 8,
+  "weather": {
+    "enabled": true,
+    "locations": [
+      {
+        "label": "台北",
+        "query": "Taipei"
+      },
+      {
+        "label": "台中",
+        "query": "Taichung"
+      },
+      {
+        "label": "雲林",
+        "query": "Yunlin"
+      },
+      {
+        "label": "嘉義",
+        "query": "Chiayi"
+      }
+    ]
+  },
+  "markets": {
+    "enabled": true,
+    "symbols": [
+      {
+        "label": "QQQ",
+        "stooq": "qqq.us"
+      },
+      {
+        "label": "NVDA",
+        "stooq": "nvda.us"
+      },
+      {
+        "label": "TSLA",
+        "stooq": "tsla.us"
+      },
+      {
+        "label": "USD/TWD",
+        "stooq": "usdtwd"
+      },
+      {
+        "label": "JPY/TWD",
+        "stooq": "jpytwd"
+      }
+    ]
+  },
+  "profiles": {
+    "morning": {
+      "title": "早安 Briefing",
+      "sections": [
+        "AI / 開發工具",
+        "台灣與國際重點",
+        "Apple",
+        "遊戲",
+        "攝影 / 音響"
+      ]
+    },
+    "evening": {
+      "title": "晚間 Briefing",
+      "sections": [
+        "AI / 開發工具",
+        "台灣與國際重點",
+        "投資與市場",
+        "Apple",
+        "遊戲"
+      ]
+    }
+  },
+  "sections": [
+    {
+      "name": "AI / 開發工具",
+      "max_items": 8,
+      "feeds": [
+        {
+          "name": "OpenAI News",
+          "url": "https://openai.com/news/rss.xml",
+          "max_items": 3
+        },
+        {
+          "name": "GitHub Blog",
+          "url": "https://github.blog/feed/",
+          "max_items": 3
+        },
+        {
+          "name": "Hacker News",
+          "url": "https://news.ycombinator.com/rss",
+          "max_items": 5
+        }
+      ],
+      "keywords": [
+        "AI",
+        "agent",
+        "coding",
+        "Codex",
+        "Claude",
+        "Gemini",
+        "OpenAI",
+        "ChatGPT",
+        "GitHub",
+        "IDE",
+        "developer",
+        "model"
+      ]
+    },
+    {
+      "name": "台灣與國際重點",
+      "max_items": 6,
+      "feeds": [
+        {
+          "name": "中央社",
+          "url": "https://www.cna.com.tw/rss/aall.xml",
+          "max_items": 8
+        }
+      ],
+      "exclude_keywords": [
+        "藝人",
+        "八卦",
+        "農業部",
+        "宣導"
+      ]
+    },
+    {
+      "name": "Apple",
+      "max_items": 4,
+      "feeds": [
+        {
+          "name": "MacRumors",
+          "url": "https://www.macrumors.com/macrumors.xml",
+          "max_items": 8
+        }
+      ],
+      "keywords": [
+        "Apple",
+        "iOS",
+        "macOS",
+        "MacBook",
+        "iMac",
+        "iPhone",
+        "iPad"
+      ],
+      "exclude_keywords": [
+        "rumor",
+        "leak",
+        "alleged"
+      ]
+    },
+    {
+      "name": "遊戲",
+      "max_items": 5,
+      "feeds": [
+        {
+          "name": "Gematsu",
+          "url": "https://www.gematsu.com/feed",
+          "max_items": 10
+        },
+        {
+          "name": "Capcom News",
+          "url": "https://news.capcomusa.com/feed",
+          "max_items": 8
+        }
+      ],
+      "keywords": [
+        "Resident Evil",
+        "Pragmata",
+        "Capcom",
+        "RE Engine",
+        "Epic Seven",
+        "第七史詩"
+      ],
+      "exclude_keywords": [
+        "NIKKE"
+      ]
+    },
+    {
+      "name": "攝影 / 音響",
+      "max_items": 6,
+      "feeds": [
+        {
+          "name": "DPReview",
+          "url": "https://www.dpreview.com/feeds/news.xml",
+          "max_items": 8
+        },
+        {
+          "name": "Fuji Rumors",
+          "url": "https://www.fujirumors.com/feed/",
+          "max_items": 8
+        },
+        {
+          "name": "Head-Fi",
+          "url": "https://www.head-fi.org/feeds/posts/default",
+          "max_items": 8
+        }
+      ],
+      "keywords": [
+        "Fujifilm",
+        "Fuji",
+        "OM SYSTEM",
+        "Olympus",
+        "lens",
+        "camera",
+        "Edifier",
+        "Bose",
+        "IEM",
+        "DAC"
+      ]
+    },
+    {
+      "name": "投資與市場",
+      "max_items": 4,
+      "feeds": [
+        {
+          "name": "Reuters Markets",
+          "url": "https://feeds.reuters.com/reuters/businessNews",
+          "max_items": 8
+        }
+      ],
+      "keywords": [
+        "Nasdaq",
+        "Nvidia",
+        "Tesla",
+        "Fed",
+        "dollar",
+        "yen",
+        "semiconductor",
+        "AI"
+      ]
+    }
+  ]
+}
