@@ -5,8 +5,8 @@
 ## 你會得到什麼
 
 - 每天早上與晚上固定時間自動推播
-- 支援分類 RSS / Atom 資訊來源
-- 支援天氣、股價與匯率速覽
+- 支援分類 RSS / Atom 資訊來源，預設中文來源優先
+- 支援攝氏天氣、股價與匯率速覽
 - 支援手動從 GitHub Actions 觸發
 - 不需要伺服器，不需要電腦開著
 - 不依賴 OpenAI API，之後可再加 AI 摘要
@@ -43,6 +43,16 @@ https://api.telegram.org/bot<你的 BOT TOKEN>/getUpdates
 
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_CHAT_ID`
+
+## 目前預設內容
+
+- AI / 開發工具：iThome、TechNews、INSIDE
+- 台灣與國際重點：中央社
+- Apple：Apple 台灣 Newsroom、TechNews
+- 遊戲：巴哈姆特 GNN、4Gamers
+- 攝影 / 音響：TechNews 關鍵字過濾
+- 市場速覽：QQQ、NVDA、TSLA、USD/TWD、JPY/TWD
+- 天氣：台北、台中、雲林、嘉義，強制攝氏
 
 ### 4. 設定資訊來源
 

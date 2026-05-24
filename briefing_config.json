@@ -49,7 +49,7 @@
   },
   "profiles": {
     "morning": {
-      "title": "早安 Briefing",
+      "title": "每日晨報",
       "sections": [
         "AI / 開發工具",
         "台灣與國際重點",
@@ -59,7 +59,7 @@
       ]
     },
     "evening": {
-      "title": "晚間 Briefing",
+      "title": "晚間簡報",
       "sections": [
         "AI / 開發工具",
         "台灣與國際重點",
@@ -72,28 +72,34 @@
   "sections": [
     {
       "name": "AI / 開發工具",
-      "max_items": 8,
+      "max_items": 6,
+      "language": "zh",
       "feeds": [
         {
-          "name": "OpenAI News",
-          "url": "https://openai.com/news/rss.xml",
-          "max_items": 3
+          "name": "iThome",
+          "url": "https://www.ithome.com.tw/rss",
+          "max_items": 10
         },
         {
-          "name": "GitHub Blog",
-          "url": "https://github.blog/feed/",
-          "max_items": 3
+          "name": "TechNews 科技新報",
+          "url": "https://technews.tw/feed/",
+          "max_items": 10
         },
         {
-          "name": "Hacker News",
-          "url": "https://news.ycombinator.com/rss",
-          "max_items": 5
+          "name": "INSIDE",
+          "url": "https://www.inside.com.tw/feed/rss",
+          "max_items": 10
         }
       ],
       "keywords": [
         "AI",
+        "人工智慧",
+        "生成式",
         "agent",
+        "代理",
         "coding",
+        "程式",
+        "開發",
         "Codex",
         "Claude",
         "Gemini",
@@ -101,13 +107,14 @@
         "ChatGPT",
         "GitHub",
         "IDE",
-        "developer",
-        "model"
+        "開發者",
+        "模型"
       ]
     },
     {
       "name": "台灣與國際重點",
       "max_items": 6,
+      "language": "zh",
       "feeds": [
         {
           "name": "中央社",
@@ -125,11 +132,17 @@
     {
       "name": "Apple",
       "max_items": 4,
+      "language": "zh",
       "feeds": [
         {
-          "name": "MacRumors",
-          "url": "https://www.macrumors.com/macrumors.xml",
+          "name": "Apple 台灣 Newsroom",
+          "url": "https://www.apple.com/tw/newsroom/rss-feed.rss",
           "max_items": 8
+        },
+        {
+          "name": "TechNews 科技新報",
+          "url": "https://technews.tw/feed/",
+          "max_items": 10
         }
       ],
       "keywords": [
@@ -150,15 +163,16 @@
     {
       "name": "遊戲",
       "max_items": 5,
+      "language": "zh",
       "feeds": [
         {
-          "name": "Gematsu",
-          "url": "https://www.gematsu.com/feed",
+          "name": "巴哈姆特 GNN",
+          "url": "https://gnn.gamer.com.tw/rss.xml",
           "max_items": 10
         },
         {
-          "name": "Capcom News",
-          "url": "https://news.capcomusa.com/feed",
+          "name": "4Gamers",
+          "url": "https://www.4gamers.com.tw/rss/latest-news",
           "max_items": 8
         }
       ],
@@ -176,22 +190,13 @@
     },
     {
       "name": "攝影 / 音響",
-      "max_items": 6,
+      "max_items": 4,
+      "language": "zh",
       "feeds": [
         {
-          "name": "DPReview",
-          "url": "https://www.dpreview.com/feeds/news.xml",
-          "max_items": 8
-        },
-        {
-          "name": "Fuji Rumors",
-          "url": "https://www.fujirumors.com/feed/",
-          "max_items": 8
-        },
-        {
-          "name": "Head-Fi",
-          "url": "https://www.head-fi.org/feeds/posts/default",
-          "max_items": 8
+          "name": "TechNews 科技新報",
+          "url": "https://technews.tw/feed/",
+          "max_items": 10
         }
       ],
       "keywords": [
@@ -210,22 +215,31 @@
     {
       "name": "投資與市場",
       "max_items": 4,
+      "language": "zh",
       "feeds": [
         {
-          "name": "Reuters Markets",
-          "url": "https://feeds.reuters.com/reuters/businessNews",
+          "name": "TechNews 科技新報",
+          "url": "https://technews.tw/feed/",
           "max_items": 8
         }
       ],
       "keywords": [
         "Nasdaq",
+        "那斯達克",
         "Nvidia",
+        "輝達",
         "Tesla",
+        "特斯拉",
         "Fed",
+        "聯準會",
         "dollar",
+        "美元",
         "yen",
+        "日圓",
         "semiconductor",
-        "AI"
+        "半導體",
+        "AI",
+        "人工智慧"
       ]
     }
   ]

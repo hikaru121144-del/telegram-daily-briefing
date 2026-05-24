@@ -102,6 +102,10 @@ def truncate(value: str, length: int = 90) -> str:
     return value[: length - 1].rstrip() + "..."
 
 
+def contains_cjk(value: str) -> bool:
+    return any("\u4e00" <= char <= "\u9fff" for char in value)
+
+
 def load_config(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as file:
         data = json.load(file)
@@ -124,6 +128,7 @@ def collect_section(section: dict) -> list[dict[str, str]]:
     seen_links = set()
     keywords = section.get("keywords")
     exclude_keywords = section.get("exclude_keywords")
+    require_chinese = section.get("language") == "zh"
 
     for feed in section.get("feeds", []):
         feed_name = feed.get("name", "Source")
@@ -133,6 +138,8 @@ def collect_section(section: dict) -> list[dict[str, str]]:
             continue
 
         for item in items:
+            if require_chinese and not contains_cjk(f"{item.get('title', '')} {item.get('summary', '')}"):
+                continue
             link = item.get("link") or item.get("title", "")
             if link in seen_links or not item_matches(item, keywords, exclude_keywords):
                 continue
@@ -154,7 +161,7 @@ def fetch_weather(locations: list[str | dict]) -> list[str]:
             query_value = location
         query = urllib.parse.quote(query_value)
         try:
-            data = fetch_url(f"https://wttr.in/{query}?format=3", timeout=10).decode("utf-8")
+            data = fetch_url(f"https://wttr.in/{query}?m&format=3", timeout=10).decode("utf-8")
         except (urllib.error.URLError, TimeoutError, UnicodeDecodeError):
             continue
         if data:
@@ -195,14 +202,14 @@ def render_item(item: dict[str, str]) -> str:
     title = html.escape(item["title"])
     link = item.get("link", "")
     source = html.escape(item.get("source", ""))
-    summary = truncate(item.get("summary", ""), 86)
+    summary = truncate(item.get("summary", ""), 72)
     source_text = f" <i>({source})</i>" if source else ""
 
     if link:
         line = f'- <a href="{html.escape(link, quote=True)}">{title}</a>{source_text}'
     else:
         line = f"- {title}{source_text}"
-    if summary:
+    if summary and contains_cjk(summary):
         line += f"\n  {html.escape(summary)}"
     return line
 
